@@ -1,2 +1,2 @@
-# nomad-gittops-operator
+# nomad-gitops-operator
 A GitOps operator for Hashicorp Nomad
