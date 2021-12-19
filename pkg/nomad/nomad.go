@@ -2,7 +2,6 @@ package nomad
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	v1 "github.com/hashicorp/nomad-openapi/v1"
@@ -28,26 +27,9 @@ func List() {
 	}
 }
 
-func Apply() (string, error) {
-	// https://github.com/hashicorp/nomad-openapi/
-	// https://docs.google.com/presentation/d/1h4OOjPFOHbDJsbtuQZRYDjotyBH1YZs7V8L7qmEjRXc/edit#slide=id.gd36c5fdcb4_1_200
-
-	applyJob("./test/data/jobs/traefik.nomad")
-	applyJob("./test/data/jobs/hello_world.nomad")
-
-	return "Succes", nil
-}
-
-func ReadFromFile(file string) (data []byte, err error) {
-	byteValue, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return byteValue, nil
-}
-
-func applyJob(filePath string) (string, error) {
+// https://github.com/hashicorp/nomad-openapi/
+// https://docs.google.com/presentation/d/1h4OOjPFOHbDJsbtuQZRYDjotyBH1YZs7V8L7qmEjRXc/edit#slide=id.gd36c5fdcb4_1_200
+func ApplyJob(job string) (string, error) {
 	client, err := v1.NewClient()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -55,9 +37,7 @@ func applyJob(filePath string) (string, error) {
 
 	opts := v1.DefaultQueryOpts()
 
-	jobHCL, _ := ReadFromFile(filePath)
-
-	parsedJob, err := client.Jobs().Parse(opts.Ctx(), string(jobHCL[:]), false, false)
+	parsedJob, err := client.Jobs().Parse(opts.Ctx(), job, false, false)
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +46,7 @@ func applyJob(filePath string) (string, error) {
 		return "", err
 	}
 
-	client.Jobs().Post(opts.Ctx(), parsedJob)
+	res, _, err := client.Jobs().Post(opts.Ctx(), parsedJob)
 
-	return "Succes", nil
+	return *res.EvalID, nil
 }
