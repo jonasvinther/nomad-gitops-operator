@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -13,6 +15,10 @@ Created by Jonas Vinther.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		address, _ := cmd.Flags().GetString("address")
+		if address != "" {
+			os.Setenv("NOMAD_ADDR", address)
+		}
+
 		if viper.IsSet("NOMAD_ADDR") && address == "" {
 			value := viper.Get("NOMAD_ADDR").(string)
 			err := cmd.Flags().Set("address", value)

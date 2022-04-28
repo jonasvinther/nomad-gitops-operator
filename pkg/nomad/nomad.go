@@ -39,14 +39,19 @@ func ApplyJob(job string) (string, error) {
 
 	parsedJob, err := client.Jobs().Parse(opts.Ctx(), job, false, false)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error while parsing job to Nomad: %s", err)
 	}
+
 	_, _, err = client.Jobs().Plan(opts.Ctx(), parsedJob, false)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error while running nomad plan: %s", err)
 	}
 
 	res, _, err := client.Jobs().Post(opts.Ctx(), parsedJob)
+
+	if err != nil {
+		return "", fmt.Errorf("error while running nomad post: %s", err)
+	}
 
 	return *res.EvalID, nil
 }

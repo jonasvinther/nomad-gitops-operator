@@ -1,4 +1,4 @@
-.PHONY: test build compile
+.PHONY: test build compile start-nomad
 
 test:
 	go test -v ./...
@@ -13,5 +13,8 @@ compile:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o bin/nomoperator-linux-arm64 main.go
 	CGO_ENABLED=0 GOOS=freebsd GOARCH=386 go build -o bin/nomoperator-freebsd-386 main.go
 	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o bin/nomoperator.exe main.go
+
+start-nomad:
+	./scripts/start-nomad.sh
 
 all: test build
