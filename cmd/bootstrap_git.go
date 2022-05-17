@@ -37,22 +37,21 @@ var bootstrapGitCmd = &cobra.Command{
 	Long:  ``,
 	// Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		repositoryURL, err := url.Parse(gitArgs.url)
-		if err != nil {
-			return err
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*5))
-		defer cancel()
-
-		worktree, err := repository.CLone(ctx, repositoryURL, gitArgs.branch)
-
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-		}
-
 		// Reconcile
 		for true {
+			repositoryURL, err := url.Parse(gitArgs.url)
+			if err != nil {
+				return err
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*5))
+			defer cancel()
+
+			worktree, err := repository.CLone(ctx, repositoryURL, gitArgs.branch)
+
+			if err != nil {
+				fmt.Printf("Error: %s\n", err)
+			}
 			worktree.Pull(&git.PullOptions{RemoteName: "origin"})
 
 			fs := worktree.Filesystem
@@ -62,6 +61,15 @@ var bootstrapGitCmd = &cobra.Command{
 				return err
 			}
 
+			// Create Nomad client
+			client, err := nomad.NewClient()
+			if err != nil {
+				fmt.Printf("Error %s\n", err)
+			}
+
+			desiredStateJobs := make(map[string]interface{})
+
+			// Parse and apply all jobs from within the git repo
 			for _, file := range files {
 				filePath := fs.Join(path, file.Name())
 				f, err := fs.Open(filePath)
@@ -74,12 +82,48 @@ var bootstrapGitCmd = &cobra.Command{
 					return err
 				}
 
-				status, err := nomad.ApplyJob(string(b))
+				// Parse job
+				job, err := client.ParseJob(string(b))
+				if err != nil {
+					// If a parse error occurs we skip the job an continue with the next job
+					fmt.Println(err)
+					continue
+				}
+				desiredStateJobs[job.GetName()] = job
+
+				// Apply job
+				fmt.Printf("Applying job [%s]\n", job.GetName())
+				_, err = client.ApplyJob(job)
 				if err != nil {
 					return err
 				}
-				fmt.Println(status)
 			}
+
+			// List all jobs managed by Monoporator
+			currentStateJobs, err := client.ListJobs()
+			if err != nil {
+				fmt.Printf("Error %s\n", err)
+			}
+
+			// Check if job has the required metadata
+			// Check if job is one of the parsed jobs
+			for _, job := range currentStateJobs {
+				meta := job.GetMeta()
+
+				if _, isManaged := meta["nomoporater"]; isManaged {
+					// If the job is managed by Nomoporator and is part of the desired state
+					if _, inDesiredState := desiredStateJobs[job.GetName()]; inDesiredState {
+
+					} else {
+						fmt.Printf("Deleting job [%s]\n", job.GetName())
+						err = client.DeleteJob(job)
+						if err != nil {
+							fmt.Println(err)
+						}
+					}
+				}
+			}
+
 			time.Sleep(30 * time.Second)
 		}
 
