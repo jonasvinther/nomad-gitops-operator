@@ -37,6 +37,13 @@ var bootstrapGitCmd = &cobra.Command{
 	Long:  ``,
 	// Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		// Create Nomad client
+		client, err := nomad.NewClient()
+		if err != nil {
+			fmt.Printf("Error %s\n", err)
+		}
+
 		// Reconcile
 		for true {
 			repositoryURL, err := url.Parse(gitArgs.url)
@@ -59,12 +66,6 @@ var bootstrapGitCmd = &cobra.Command{
 			files, err := fs.ReadDir(path)
 			if err != nil {
 				return err
-			}
-
-			// Create Nomad client
-			client, err := nomad.NewClient()
-			if err != nil {
-				fmt.Printf("Error %s\n", err)
 			}
 
 			desiredStateJobs := make(map[string]interface{})
