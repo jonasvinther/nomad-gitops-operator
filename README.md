@@ -26,10 +26,14 @@ Usage:
   nomoperator bootstrap git [git repo] [flags]
 
 Flags:
-      --branch string   git branch (default "main")
-  -h, --help            help for git
-      --path string     path relative to the repository root (default "/")
-      --url string      git repository URL
+      --branch string                  git branch (default "main")
+  -h, --help                           help for git
+      --password string                SSH private key password
+      --path string                    path relative to the repository root (default "/")
+      --ssh-insecure-ignore-host-key   Ignore insecure SSH host key
+      --ssh-key string                 SSH private key
+      --url string                     git repository URL
+      --username string                SSH username (default "git")
 
 Global Flags:
   -a, --address string   Address of the Nomad server
@@ -51,6 +55,66 @@ job "nomoperator" {
       config {
         command = "nomoperator"
         args    = ["bootstrap", "git", "--url", "https://github.com/jonasvinther/nomad-state.git", "--branch", "main", "--path", "/prod-env"]
+      }
+      artifact {
+        source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.1/nomad-gitops-operator_0.0.1_linux_amd64.tar.gz"
+        destination = "local"
+        mode        = "any"
+      }
+    }
+  }
+}
+```
+
+## SSH
+
+You can use SSH keys to connect to a private git repository.
+
+* Generate a public and private key
+
+```bash
+ssh-keygen -t ed25519 -C "nomoperator" -f "nomoperatordeploykey" -N ""
+```
+
+If you would like to set password remove `-N ""` and enter the password. Make sure to set `--username sshusername ` and `--pasword sshpassword` when running nomoperator.
+
+* Configure the server git repository with public key
+
+* Generate `known_hosts` for the git server in `/path_to/known_hosts` which is accessible via nomoperator.
+
+```bash
+ssh-keyscan -t ed25519 github.com
+```
+
+If your git server uses non started port use the `-p` flag.
+
+```bash
+ssh-keyscan -t ed25519 -p 2222 mygitserver.com
+```
+
+If you would like to avoid using hosts files you can set `--ssh-insecure-ignore-host-key=true`. This is highly discouraged due to security risks.
+
+* Run as nomad job
+
+```yaml
+job "nomoperator" {
+  datacenters = ["dc1"]
+  group "nomoperator" {
+    count = 1
+    task "nomoperator" {
+      driver = "exec"
+      env {
+        SSH_KNOWN_HOSTS = "/path_to/known_hosts"
+        SSH_KEY = <<EOF
+-----BEGIN OPENSSH PRIVATE KEY-----
+......
+-----END OPENSSH PRIVATE KEY-----
+EOF
+
+      }
+      config {
+        command = "nomoperator"
+        args    = ["bootstrap", "git", "--url", "git@github.com:jonasvinther/nomad-state.git", "--branch", "main", "--path", "/prod-env", "--username", "git", "--password", "", "--ssh-key", "$SSH_KEY"]
       }
       artifact {
         source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.1/nomad-gitops-operator_0.0.1_linux_amd64.tar.gz"
