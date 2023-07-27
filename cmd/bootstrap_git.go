@@ -93,7 +93,7 @@ var bootstrapGitCmd = &cobra.Command{
 				job, err := client.ParseJob(string(b))
 				if err != nil {
 					// If a parse error occurs we skip the job an continue with the next job
-					fmt.Println(err)
+					fmt.Printf("Failed to parse file [%s]: %s\n", filePath, err)
 					continue
 				}
 				desiredStateJobs[job.GetName()] = job
