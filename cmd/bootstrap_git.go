@@ -15,11 +15,13 @@ import (
 )
 
 type gitFlags struct {
-	url      string
-	branch   string
-	path     string
-	username string
-	password string
+	url         string
+	branch      string
+	path        string
+	username    string
+	password    string
+	sshkey      string
+	sshinsecure bool
 }
 
 var gitArgs gitFlags
@@ -29,6 +31,10 @@ func init() {
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.url, "url", "", "git repository URL")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.branch, "branch", "main", "git branch")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "/", "path relative to the repository root")
+	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "username", "git", "SSH username")
+	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "password", "", "SSH private key password")
+	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
+	bootstrapGitCmd.Flags().BoolVar(&gitArgs.sshinsecure, "ssh-insecure-ignore-host-key", false, "Ignore insecure SSH host key")
 }
 
 var bootstrapGitCmd = &cobra.Command{
@@ -54,7 +60,7 @@ var bootstrapGitCmd = &cobra.Command{
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*5))
 			defer cancel()
 
-			worktree, err := repository.CLone(ctx, repositoryURL, gitArgs.branch)
+			worktree, err := repository.CLone(ctx, repositoryURL, gitArgs.branch, gitArgs.username, gitArgs.sshkey, gitArgs.password, gitArgs.sshinsecure)
 
 			if err != nil {
 				fmt.Printf("Error: %s\n", err)

@@ -3,6 +3,7 @@ module nomad-gitops-operator
 go 1.18
 
 require (
+	golang.org/x/crypto v0.11.0
 	github.com/go-git/go-billy/v5 v5.4.1
 	github.com/go-git/go-git/v5 v5.8.0
 	github.com/hashicorp/nomad-openapi v0.0.0-20230523183328-33c9d2d9ac36
