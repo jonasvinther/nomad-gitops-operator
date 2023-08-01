@@ -24,6 +24,7 @@ func CLone(ctx context.Context, repositoryURL *url.URL, branch string, username 
 		ReferenceName: ranchRef,
 		SingleBranch:  true,
 		Depth:         1,
+		Tags:          git.NoTags,
 	}
 
 	if sshkey != "" {
