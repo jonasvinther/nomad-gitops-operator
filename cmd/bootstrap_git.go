@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/go-git/go-billy/v5/util"
 	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 
@@ -30,7 +31,7 @@ func init() {
 	bootstrapCmd.AddCommand(bootstrapGitCmd)
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.url, "url", "", "git repository URL")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.branch, "branch", "main", "git branch")
-	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "/", "path relative to the repository root")
+	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "**/*.nomad", "glob pattern relative to the repository root")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "username", "git", "SSH username")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "password", "", "SSH private key password")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
@@ -43,7 +44,6 @@ var bootstrapGitCmd = &cobra.Command{
 	Long:  ``,
 	// Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		// Create Nomad client
 		client, err := nomad.NewClient()
 		if err != nil {
@@ -68,8 +68,7 @@ var bootstrapGitCmd = &cobra.Command{
 			worktree.Pull(&git.PullOptions{RemoteName: "origin"})
 
 			fs := worktree.Filesystem
-			path := gitArgs.path
-			files, err := fs.ReadDir(path)
+			files, err := util.Glob(fs, gitArgs.path)
 			if err != nil {
 				return err
 			}
@@ -77,8 +76,7 @@ var bootstrapGitCmd = &cobra.Command{
 			desiredStateJobs := make(map[string]interface{})
 
 			// Parse and apply all jobs from within the git repo
-			for _, file := range files {
-				filePath := fs.Join(path, file.Name())
+			for _, filePath := range files {
 				f, err := fs.Open(filePath)
 				if err != nil {
 					return err
@@ -99,7 +97,7 @@ var bootstrapGitCmd = &cobra.Command{
 				desiredStateJobs[job.GetName()] = job
 
 				// Apply job
-				fmt.Printf("Applying job [%s]\n", job.GetName())
+				fmt.Printf("Applying job [%s][%s]\n", job.GetName(), filePath)
 				_, err = client.ApplyJob(job)
 				if err != nil {
 					return err
