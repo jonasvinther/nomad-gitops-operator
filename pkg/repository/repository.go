@@ -22,6 +22,7 @@ func CLone(ctx context.Context, repositoryURL *url.URL, branch string, username 
 	cloneOptions := &git.CloneOptions{
 		URL:           repositoryURL.String(),
 		ReferenceName: ranchRef,
+		SingleBranch:  true,
 	}
 
 	if sshkey != "" {
