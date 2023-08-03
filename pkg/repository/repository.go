@@ -9,8 +9,8 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"golang.org/x/crypto/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
+	"golang.org/x/crypto/ssh"
 )
 
 // CLone will clone a git repo
@@ -22,6 +22,9 @@ func CLone(ctx context.Context, repositoryURL *url.URL, branch string, username 
 	cloneOptions := &git.CloneOptions{
 		URL:           repositoryURL.String(),
 		ReferenceName: ranchRef,
+		SingleBranch:  true,
+		Depth:         1,
+		Tags:          git.NoTags,
 	}
 
 	if sshkey != "" {

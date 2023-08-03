@@ -57,7 +57,7 @@ job "nomoperator" {
         args    = ["bootstrap", "git", "--url", "https://github.com/jonasvinther/nomad-state.git", "--branch", "main", "--path", "/prod-env"]
       }
       artifact {
-        source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.1/nomad-gitops-operator_0.0.1_linux_amd64.tar.gz"
+        source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.2/nomad-gitops-operator_0.0.2_linux_amd64.tar.gz"
         destination = "local"
         mode        = "any"
       }
@@ -117,7 +117,7 @@ EOF
         args    = ["bootstrap", "git", "--url", "git@github.com:jonasvinther/nomad-state.git", "--branch", "main", "--path", "/prod-env", "--username", "git", "--password", "", "--ssh-key", "$SSH_KEY"]
       }
       artifact {
-        source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.1/nomad-gitops-operator_0.0.1_linux_amd64.tar.gz"
+        source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.2/nomad-gitops-operator_0.0.2_linux_amd64.tar.gz"
         destination = "local"
         mode        = "any"
       }
