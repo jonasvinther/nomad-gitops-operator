@@ -29,7 +29,7 @@ Flags:
       --branch string                  git branch (default "main")
   -h, --help                           help for git
       --password string                SSH private key password
-      --path string                    path relative to the repository root (default "/")
+      --path string                    glob pattern relative to the repository root (default "**/*.nomad")
       --ssh-insecure-ignore-host-key   Ignore insecure SSH host key
       --ssh-key string                 SSH private key
       --url string                     git repository URL
@@ -41,7 +41,7 @@ Global Flags:
 
 Use it like this:
 ```
-./nomoperator bootstrap git --url https://github.com/jonasvinther/nomad-state.git --path /jobs --branch main
+./nomoperator bootstrap git --url https://github.com/jonasvinther/nomad-state.git --path jobs/*.nomad --branch main
 ```
 
 ## Run as Nomad job
@@ -54,7 +54,7 @@ job "nomoperator" {
       driver = "exec"
       config {
         command = "nomoperator"
-        args    = ["bootstrap", "git", "--url", "https://github.com/jonasvinther/nomad-state.git", "--branch", "main", "--path", "/prod-env"]
+        args    = ["bootstrap", "git", "--url", "https://github.com/jonasvinther/nomad-state.git", "--branch", "main", "--path", "jobs/*.nomad"]
       }
       artifact {
         source      = "https://github.com/jonasvinther/nomad-gitops-operator/releases/download/v0.0.2/nomad-gitops-operator_0.0.2_linux_amd64.tar.gz"
