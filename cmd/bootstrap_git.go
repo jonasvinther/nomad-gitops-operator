@@ -88,7 +88,8 @@ var bootstrapGitCmd = &cobra.Command{
 				}
 
 				// Parse job
-				job, err := client.ParseJob(string(b))
+				hcl := string(b)
+				job, err := client.ParseJob(hcl)
 				if err != nil {
 					// If a parse error occurs we skip the job an continue with the next job
 					fmt.Printf("Failed to parse file [%s]: %s\n", filePath, err)
@@ -98,7 +99,7 @@ var bootstrapGitCmd = &cobra.Command{
 
 				// Apply job
 				fmt.Printf("Applying job [%s][%s]\n", *job.Name, filePath)
-				_, err = client.ApplyJob(job)
+				_, err = client.ApplyJob(job, hcl)
 				if err != nil {
 					return err
 				}

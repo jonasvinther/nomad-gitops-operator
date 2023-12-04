@@ -56,7 +56,7 @@ func (client *Client) ParseJob(job string) (*nc.Job, error) {
 	return parsedJob, nil
 }
 
-func (client *Client) ApplyJob(job *nc.Job) (string, error) {
+func (client *Client) ApplyJob(job *nc.Job, hcl string) (string, error) {
 	// Adding metadata to identify the jobs managed by the Nomoporator
 	job.SetMeta("nomoporater", "true")
 	job.SetMeta("uid", "nomoporator")
@@ -68,7 +68,12 @@ func (client *Client) ApplyJob(job *nc.Job) (string, error) {
 		return "", fmt.Errorf("error while running nomad plan: %s", err)
 	}
 
-	res, _, err := client.nc.Jobs().Register(job, nil)
+	res, _, err := client.nc.Jobs().RegisterOpts(job, &nc.RegisterOptions{
+		Submission: &nc.JobSubmission{
+			Source: hcl,
+			Format: "hcl",
+		},
+	}, nil)
 
 	if err != nil {
 		return "", fmt.Errorf("error while registering nomad job: %s", err)
