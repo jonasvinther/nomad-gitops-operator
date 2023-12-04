@@ -94,10 +94,10 @@ var bootstrapGitCmd = &cobra.Command{
 					fmt.Printf("Failed to parse file [%s]: %s\n", filePath, err)
 					continue
 				}
-				desiredStateJobs[job.GetName()] = job
+				desiredStateJobs[*job.Name] = job
 
 				// Apply job
-				fmt.Printf("Applying job [%s][%s]\n", job.GetName(), filePath)
+				fmt.Printf("Applying job [%s][%s]\n", *job.Name, filePath)
 				_, err = client.ApplyJob(job)
 				if err != nil {
 					return err
@@ -113,14 +113,14 @@ var bootstrapGitCmd = &cobra.Command{
 			// Check if job has the required metadata
 			// Check if job is one of the parsed jobs
 			for _, job := range currentStateJobs {
-				meta := job.GetMeta()
+				meta := job.Meta
 
 				if _, isManaged := meta["nomoporater"]; isManaged {
 					// If the job is managed by Nomoporator and is part of the desired state
-					if _, inDesiredState := desiredStateJobs[job.GetName()]; inDesiredState {
+					if _, inDesiredState := desiredStateJobs[*job.Name]; inDesiredState {
 
 					} else {
-						fmt.Printf("Deleting job [%s]\n", job.GetName())
+						fmt.Printf("Deleting job [%s]\n", *job.Name)
 						err = client.DeleteJob(job)
 						if err != nil {
 							fmt.Println(err)
