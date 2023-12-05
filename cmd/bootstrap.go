@@ -8,7 +8,7 @@ func init() {
 
 var bootstrapCmd = &cobra.Command{
 	Use:   "bootstrap",
-	Short: "bootstrap a yaml file into a Vault instance",
+	Short: "bootstrap into a Nomad instance",
 	Long:  ``,
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {

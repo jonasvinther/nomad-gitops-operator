@@ -15,6 +15,31 @@ NOMAD_CLIENT_CERT - Required with TLS enabled.
 NOMAD_CLIENT_KEY - Required with TLS enabled.
 ```
 
+### Bootstrapping using a local path
+
+> Get help with `./nomoporator bootstrap fs -h`
+
+```
+Bootstrap Nomad using a local path
+
+Usage:
+  nomoperator bootstrap fs [path] [flags]
+
+Flags:
+      --base-dir string   Path to the base directory (default "./")
+  -h, --help              help for fs
+      --path string       glob pattern relative to the base-dir (default "**/*.nomad")
+      --watch             Enable watch mode
+
+Global Flags:
+  -a, --address string   Address of the Nomad server
+```
+
+Use it like this:
+```
+./nomoperator bootstrap fs --base-dir /path/to/base/dir --path jobs/*.nomad
+```
+
 ### Bootstrapping using a git repository
 
 > Get help with `./nomoporator bootstrap git -h`
@@ -34,6 +59,7 @@ Flags:
       --ssh-key string                 SSH private key
       --url string                     git repository URL
       --username string                SSH username (default "git")
+      --watch                          Enable watch mode (default true)
 
 Global Flags:
   -a, --address string   Address of the Nomad server
