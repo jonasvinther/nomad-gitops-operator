@@ -71,7 +71,7 @@ func (client *Client) ApplyJob(job *nc.Job, hcl string) (string, error) {
 	res, _, err := client.nc.Jobs().RegisterOpts(job, &nc.RegisterOptions{
 		Submission: &nc.JobSubmission{
 			Source: hcl,
-			Format: "hcl",
+			Format: "hcl2",
 		},
 	}, nil)
 
