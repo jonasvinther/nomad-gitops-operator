@@ -60,6 +60,13 @@ func Run(opts ReconcileOptions) error {
 				fmt.Printf("Failed to parse file [%s]: %s\n", filePath, err)
 				continue
 			}
+
+			_, ok := desiredStateJobs[*job.Name]
+			if ok {
+				fmt.Printf("Skipping duplicate job [%s][%s]\n", *job.Name, filePath)
+				continue
+			}
+
 			desiredStateJobs[*job.Name] = job
 
 			// Apply job
