@@ -23,6 +23,7 @@ type gitFlags struct {
 	sshkey      string
 	sshinsecure bool
 	watch       bool
+	delete      bool
 }
 
 var gitArgs gitFlags
@@ -37,6 +38,7 @@ func init() {
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
 	bootstrapGitCmd.Flags().BoolVar(&gitArgs.sshinsecure, "ssh-insecure-ignore-host-key", false, "Ignore insecure SSH host key")
 	bootstrapGitCmd.Flags().BoolVar(&gitArgs.watch, "watch", true, "Enable watch mode")
+	bootstrapGitCmd.Flags().BoolVar(&gitArgs.watch, "delete", true, "Enable delete missing jobs")
 }
 
 var bootstrapGitCmd = &cobra.Command{
@@ -46,8 +48,9 @@ var bootstrapGitCmd = &cobra.Command{
 	// Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return reconcile.Run(reconcile.ReconcileOptions{
-			Path:  gitArgs.path,
-			Watch: gitArgs.watch,
+			Path:   gitArgs.path,
+			Watch:  gitArgs.watch,
+			Delete: gitArgs.delete,
 			Fs: func() (billy.Filesystem, error) {
 				repositoryURL, err := url.Parse(gitArgs.url)
 				if err != nil {

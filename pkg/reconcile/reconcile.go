@@ -12,9 +12,10 @@ import (
 )
 
 type ReconcileOptions struct {
-	Path  string
-	Watch bool
-	Fs    func() (billy.Filesystem, error)
+	Path   string
+	Watch  bool
+	Delete bool
+	Fs     func() (billy.Filesystem, error)
 }
 
 func Run(opts ReconcileOptions) error {
@@ -85,10 +86,12 @@ func Run(opts ReconcileOptions) error {
 				if _, inDesiredState := desiredStateJobs[*job.Name]; inDesiredState {
 
 				} else {
-					fmt.Printf("Deleting job [%s]\n", *job.Name)
-					err = client.DeleteJob(job)
-					if err != nil {
-						fmt.Println(err)
+					if opts.Delete {
+						fmt.Printf("Deleting job [%s]\n", *job.Name)
+						err = client.DeleteJob(job)
+						if err != nil {
+							fmt.Println(err)
+						}
 					}
 				}
 			}

@@ -27,6 +27,7 @@ Usage:
 
 Flags:
       --base-dir string   Path to the base directory (default "./")
+      --delete            Enable delete missing jobs
   -h, --help              help for fs
       --path string       glob pattern relative to the base-dir (default "**/*.nomad")
       --watch             Enable watch mode
@@ -52,6 +53,7 @@ Usage:
 
 Flags:
       --branch string                  git branch (default "main")
+      --delete                         Enable delete missing jobs (default true)
   -h, --help                           help for git
       --password string                SSH private key password
       --path string                    glob pattern relative to the repository root (default "**/*.nomad")
