@@ -90,3 +90,46 @@ func (client *Client) DeleteJob(job *nc.Job) error {
 
 	return nil
 }
+
+func (client *Client) GetVariable(name string) (*nc.Variable, error) {
+	variable, _, err := client.nc.Variables().Read(name, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return variable, nil
+}
+
+func (client *Client) UpdateVariable(v *nc.Variable) error {
+	_, _, err := client.nc.Variables().Update(v, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *Client) DeleteVariable(path string) error {
+	_, err := client.nc.Variables().Delete(path, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *Client) ListVariables() (map[string]*nc.Variable, error) {
+	variablelist, _, err := client.nc.Variables().List(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	variables := make(map[string]*nc.Variable)
+
+	for _, variable := range variablelist {
+		v, _ := client.GetVariable(variable.Path)
+		variables[variable.Path] = v
+	}
+
+	return variables, nil
+}

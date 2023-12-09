@@ -30,6 +30,7 @@ Flags:
       --delete            Enable delete missing jobs
   -h, --help              help for fs
       --path string       glob pattern relative to the base-dir (default "**/*.nomad")
+      --var-path string   var glob pattern relative to the base-dir (default "**/*.yml")
       --watch             Enable watch mode
 
 Global Flags:
@@ -61,6 +62,7 @@ Flags:
       --ssh-key string                 SSH private key
       --url string                     git repository URL
       --username string                SSH username (default "git")
+      --var-path string                var glob pattern relative to the repository root (default "**/*.yml")
       --watch                          Enable watch mode (default true)
 
 Global Flags:
@@ -152,4 +154,15 @@ EOF
     }
   }
 }
+```
+
+## Variables
+
+Variables are yml files. All keys and values in items should be of type string.
+
+```yaml
+path: nomad/jobs/jobname
+items:
+  key1: "value1"
+  key2: "value2"
 ```
