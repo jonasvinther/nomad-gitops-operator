@@ -91,13 +91,13 @@ func (client *Client) DeleteJob(job *nc.Job) error {
 	return nil
 }
 
-func (client *Client) GetVariable(name string) (*nc.Variable, error) {
-	variable, _, err := client.nc.Variables().Read(name, nil)
+func (client *Client) GetVariableItems(name string) (nc.VariableItems, error) {
+	variableItems, _, err := client.nc.Variables().GetVariableItems(name, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return variable, nil
+	return variableItems, nil
 }
 
 func (client *Client) UpdateVariable(v *nc.Variable) error {
@@ -127,7 +127,10 @@ func (client *Client) ListVariables() (map[string]*nc.Variable, error) {
 	variables := make(map[string]*nc.Variable)
 
 	for _, variable := range variablelist {
-		v, _ := client.GetVariable(variable.Path)
+		v, _, err := client.nc.Variables().Read(variable.Path, nil)
+		if err != nil {
+			return nil, err
+		}
 		variables[variable.Path] = v
 	}
 

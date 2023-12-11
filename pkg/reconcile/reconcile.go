@@ -1,8 +1,10 @@
 package reconcile
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	nc "github.com/hashicorp/nomad/api"
@@ -56,25 +58,39 @@ func Run(opts ReconcileOptions) error {
 				return err
 			}
 
-			var variable nc.Variable
-			err = yaml.Unmarshal(b, &variable)
+			var newVariable nc.Variable
+			err = yaml.Unmarshal(b, &newVariable)
 			if err != nil {
 				return err
 			}
 
-			variable.Items["nomoporater"] = "true"
-
-			_, ok := desiredStateVariables[variable.Path]
+			_, ok := desiredStateVariables[newVariable.Path]
 			if ok {
-				fmt.Printf("Skipping duplicate variable [%s][%s]\n", variable.Path, varPath)
+				fmt.Printf("Skipping duplicate variable [%s][%s]\n", newVariable.Path, varPath)
 				continue
 			}
 
-			desiredStateVariables[variable.Path] = variable
+			oldVariableItems, err := client.GetVariableItems(newVariable.Path)
+			if errors.Is(err, nc.ErrVariablePathNotFound) {
+				newVariable.Items["nomoporator"] = strings.Join(keys(newVariable.Items), ",")
+			} else if err != nil {
+				return err
+			} else {
+				newVariable.Items["nomoporatorOldKeys"] = oldVariableItems["nomoporator"]
+				newVariable.Items["nomoporator"] = strings.Join(keys(newVariable.Items), ",")
+				// copy old items to new item if it doesn't exist in new variable
+				for key := range oldVariableItems {
+					if _, ok := newVariable.Items[key]; !ok {
+						newVariable.Items[key] = oldVariableItems[key]
+					}
+				}
+			}
+
+			desiredStateVariables[newVariable.Path] = newVariable
 
 			// Update variable
-			fmt.Printf("Updating vars [%s]\n", variable.Path)
-			err = client.UpdateVariable(&variable)
+			fmt.Printf("Updating vars [%s]\n", newVariable.Path)
+			err = client.UpdateVariable(&newVariable)
 			if err != nil {
 				return err
 			}
@@ -160,18 +176,58 @@ func Run(opts ReconcileOptions) error {
 		// Check if variable has the required metadata
 		// Check if variable is one of the parsed jobs
 		for _, variable := range currentStateVariables {
-
-			if _, isManaged := variable.Items["nomoporater"]; isManaged {
+			if _, isManaged := variable.Items["nomoporator"]; isManaged {
 				// If the variable is managed by Nomoporator and is part of the desired state
 				if _, inDesiredState := desiredStateVariables[variable.Path]; inDesiredState {
-
+					if _, hasOldManagedKeys := variable.Items["nomoporatorOldKeys"]; hasOldManagedKeys {
+						newKeys := make(map[string]bool)
+						for _, key := range strings.Split(variable.Items["nomoporator"], ",") {
+							newKeys[key] = true
+						}
+						deleted := false
+						for _, key := range strings.Split(variable.Items["nomoporatorOldKeys"], ",") {
+							if _, existsInNew := newKeys[key]; !existsInNew {
+								deleted = true
+								delete(variable.Items, key)
+							}
+						}
+						delete(variable.Items, "nomoporatorOldKeys")
+						if opts.Delete {
+							if deleted {
+								fmt.Printf("Deleted managed variable items [%s]\n", variable.Path)
+							} else {
+								fmt.Printf("Removing nomoporatorOldKeys variable items [%s]\n", variable.Path)
+							}
+							err = client.UpdateVariable(variable)
+							if err != nil {
+								return err
+							}
+						}
+					}
 				} else {
 					if opts.Delete {
-						fmt.Printf("Deleting variable [%s]\n", variable.Path)
-						err = client.DeleteVariable(variable.Path)
-						if err != nil {
-							fmt.Println(err)
+						// remove all managed items and nomoporator key
+						for _, key := range strings.Split(variable.Items["nomoporator"], ",") {
+							delete(variable.Items, key)
 						}
+						delete(variable.Items, "nomoporator")
+
+						if len(variable.Items) == 0 {
+							// if no items exist, delete variable
+							fmt.Printf("Deleting variable [%s]\n", variable.Path)
+							err = client.DeleteVariable(variable.Path)
+							if err != nil {
+								fmt.Println(err)
+							}
+						} else {
+							// if items existing, keep unmanaged variables
+							fmt.Printf("Deleting managed variable items [%s]\n", variable.Path)
+							err = client.UpdateVariable(variable)
+							if err != nil {
+								return err
+							}
+						}
+
 					}
 				}
 			}
@@ -185,4 +241,12 @@ func Run(opts ReconcileOptions) error {
 	}
 
 	return nil
+}
+
+func keys[K comparable, V any](m map[K]V) []K {
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
