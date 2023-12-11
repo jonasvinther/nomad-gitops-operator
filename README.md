@@ -30,7 +30,7 @@ Flags:
       --delete            Enable delete missing jobs
   -h, --help              help for fs
       --path string       glob pattern relative to the base-dir (default "**/*.nomad")
-      --var-path string   var glob pattern relative to the base-dir (default "**/*.yml")
+      --var-path string   var glob pattern relative to the base-dir (default "**/*.vars.yml")
       --watch             Enable watch mode
 
 Global Flags:
@@ -62,7 +62,7 @@ Flags:
       --ssh-key string                 SSH private key
       --url string                     git repository URL
       --username string                SSH username (default "git")
-      --var-path string                var glob pattern relative to the repository root (default "**/*.yml")
+      --var-path string                var glob pattern relative to the repository root (default "**/*.vars.yml")
       --watch                          Enable watch mode (default true)
 
 Global Flags:

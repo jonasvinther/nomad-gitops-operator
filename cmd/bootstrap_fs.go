@@ -22,7 +22,7 @@ func init() {
 	bootstrapCmd.AddCommand(bootstrapFsCmd)
 	bootstrapFsCmd.Flags().StringVar(&fsArgs.base_dir, "base-dir", "./", "Path to the base directory")
 	bootstrapFsCmd.Flags().StringVar(&fsArgs.path, "path", "**/*.nomad", "glob pattern relative to the base-dir")
-	bootstrapFsCmd.Flags().StringVar(&fsArgs.var_path, "var-path", "**/*.yml", "var glob pattern relative to the base-dir")
+	bootstrapFsCmd.Flags().StringVar(&fsArgs.var_path, "var-path", "**/*.vars.yml", "var glob pattern relative to the base-dir")
 	bootstrapFsCmd.Flags().BoolVar(&fsArgs.watch, "watch", false, "Enable watch mode")
 	bootstrapFsCmd.Flags().BoolVar(&fsArgs.delete, "delete", false, "Enable delete missing jobs")
 }

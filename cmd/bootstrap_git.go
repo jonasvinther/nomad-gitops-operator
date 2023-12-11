@@ -34,7 +34,7 @@ func init() {
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.url, "url", "", "git repository URL")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.branch, "branch", "main", "git branch")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "**/*.nomad", "glob pattern relative to the repository root")
-	bootstrapGitCmd.Flags().StringVar(&gitArgs.var_path, "var-path", "**/*.yml", "var glob pattern relative to the repository root")
+	bootstrapGitCmd.Flags().StringVar(&gitArgs.var_path, "var-path", "**/*.vars.yml", "var glob pattern relative to the repository root")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "username", "git", "SSH username")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "password", "", "SSH private key password")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
