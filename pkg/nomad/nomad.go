@@ -3,29 +3,27 @@ package nomad
 import (
 	"fmt"
 
-	nc "github.com/hashicorp/nomad-openapi/clients/go/v1"
-	v1 "github.com/hashicorp/nomad-openapi/v1"
+	nc "github.com/hashicorp/nomad/api"
 )
 
 type Client struct {
-	nc *v1.Client
+	nc *nc.Client
 }
 
 func NewClient() (*Client, error) {
-	nc, err := v1.NewClient()
+	config := nc.DefaultConfig()
+	nc, err := nc.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &Client{}
-	client.nc = nc
+	client := &Client{nc}
 
 	return client, nil
 }
 
 func (client *Client) GetJob(name string) (*nc.Job, error) {
-	opts := v1.DefaultQueryOpts()
-	job, _, err := client.nc.Jobs().GetJob(opts.Ctx(), name)
+	job, _, err := client.nc.Jobs().Info(name, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -34,29 +32,23 @@ func (client *Client) GetJob(name string) (*nc.Job, error) {
 }
 
 func (client *Client) ListJobs() (map[string]*nc.Job, error) {
-	opts := v1.DefaultQueryOpts()
-
-	joblist, _, err := client.nc.Jobs().GetJobs(opts.Ctx())
+	joblist, _, err := client.nc.Jobs().List(nil)
 	if err != nil {
 		return nil, err
 	}
 
 	jobs := make(map[string]*nc.Job)
 
-	for _, job := range *joblist {
-		// fmt.Println(*job.Name)
-		j, _ := client.GetJob(*job.Name)
-		jobs[*job.Name] = j
-		// fmt.Println(j.Meta)
+	for _, job := range joblist {
+		j, _ := client.GetJob(job.Name)
+		jobs[job.Name] = j
 	}
 
 	return jobs, nil
 }
 
 func (client *Client) ParseJob(job string) (*nc.Job, error) {
-	opts := v1.DefaultQueryOpts()
-
-	parsedJob, err := client.nc.Jobs().Parse(opts.Ctx(), job, false, false)
+	parsedJob, err := client.nc.Jobs().ParseHCL(job, false)
 	if err != nil {
 		return nil, err
 	}
@@ -64,39 +56,83 @@ func (client *Client) ParseJob(job string) (*nc.Job, error) {
 	return parsedJob, nil
 }
 
-// https://github.com/hashicorp/nomad-openapi/
-// https://docs.google.com/presentation/d/1h4OOjPFOHbDJsbtuQZRYDjotyBH1YZs7V8L7qmEjRXc/edit#slide=id.gd36c5fdcb4_1_200
-func (client *Client) ApplyJob(job *nc.Job) (string, error) {
-	opts := v1.DefaultQueryOpts()
-
+func (client *Client) ApplyJob(job *nc.Job, hcl string) (string, error) {
 	// Adding metadata to identify the jobs managed by the Nomoporator
-	metadata := make(map[string]string)
-	metadata["nomoporater"] = "true"
-	metadata["uid"] = "nomoporator"
-	job.SetMeta(metadata)
+	job.SetMeta("nomoporater", "true")
+	job.SetMeta("uid", "nomoporator")
+
 	// fmt.Printf("JobName: %s \n", job.GetName())
 
-	_, _, err := client.nc.Jobs().Plan(opts.Ctx(), job, false)
+	_, _, err := client.nc.Jobs().Plan(job, false, nil)
 	if err != nil {
 		return "", fmt.Errorf("error while running nomad plan: %s", err)
 	}
 
-	res, _, err := client.nc.Jobs().Post(opts.Ctx(), job)
+	res, _, err := client.nc.Jobs().RegisterOpts(job, &nc.RegisterOptions{
+		Submission: &nc.JobSubmission{
+			Source: hcl,
+			Format: "hcl2",
+		},
+	}, nil)
 
 	if err != nil {
-		return "", fmt.Errorf("error while running nomad post: %s", err)
+		return "", fmt.Errorf("error while registering nomad job: %s", err)
 	}
 
-	return *res.EvalID, nil
+	return res.EvalID, nil
 }
 
 func (client *Client) DeleteJob(job *nc.Job) error {
-	opts := v1.DefaultQueryOpts()
-
-	_, _, err := client.nc.Jobs().Delete(opts.Ctx(), job.GetName(), true, true)
+	_, _, err := client.nc.Jobs().Deregister(*job.Name, true, nil)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (client *Client) GetVariableItems(name string) (nc.VariableItems, error) {
+	variableItems, _, err := client.nc.Variables().GetVariableItems(name, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return variableItems, nil
+}
+
+func (client *Client) UpdateVariable(v *nc.Variable) error {
+	_, _, err := client.nc.Variables().Update(v, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *Client) DeleteVariable(path string) error {
+	_, err := client.nc.Variables().Delete(path, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *Client) ListVariables() (map[string]*nc.Variable, error) {
+	variablelist, _, err := client.nc.Variables().List(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	variables := make(map[string]*nc.Variable)
+
+	for _, variable := range variablelist {
+		v, _, err := client.nc.Variables().Read(variable.Path, nil)
+		if err != nil {
+			return nil, err
+		}
+		variables[variable.Path] = v
+	}
+
+	return variables, nil
 }
