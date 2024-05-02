@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: nomoporator
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build_release_image:
