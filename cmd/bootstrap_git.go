@@ -36,11 +36,11 @@ func init() {
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "**/*.nomad", "glob pattern relative to the repository root")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.var_path, "var-path", "**/*.vars.yml", "var glob pattern relative to the repository root")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "username", "git", "SSH username")
-	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "password", "", "SSH private key password")
+	bootstrapGitCmd.Flags().StringVar(&gitArgs.password, "password", "", "SSH private key password")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
 	bootstrapGitCmd.Flags().BoolVar(&gitArgs.sshinsecure, "ssh-insecure-ignore-host-key", false, "Ignore insecure SSH host key")
 	bootstrapGitCmd.Flags().BoolVar(&gitArgs.watch, "watch", true, "Enable watch mode")
-	bootstrapGitCmd.Flags().BoolVar(&gitArgs.watch, "delete", true, "Enable delete missing jobs")
+	bootstrapGitCmd.Flags().BoolVar(&gitArgs.delete, "delete", true, "Enable delete missing jobs")
 }
 
 var bootstrapGitCmd = &cobra.Command{
