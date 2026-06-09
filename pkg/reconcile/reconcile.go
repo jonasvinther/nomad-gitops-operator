@@ -35,7 +35,6 @@ func Run(opts ReconcileOptions) error {
 	// Reconcile
 	for true {
 		fs, err := opts.Fs()
-
 		if err != nil {
 			return err
 		}
@@ -52,6 +51,8 @@ func Run(opts ReconcileOptions) error {
 			if err != nil {
 				return err
 			}
+
+			defer f.Close()
 
 			b, err := io.ReadAll(f)
 			if err != nil {
@@ -110,6 +111,8 @@ func Run(opts ReconcileOptions) error {
 				return err
 			}
 
+			defer f.Close()
+
 			b, err := io.ReadAll(f)
 			if err != nil {
 				return err
@@ -154,7 +157,6 @@ func Run(opts ReconcileOptions) error {
 			if _, isManaged := meta["nomoporater"]; isManaged {
 				// If the job is managed by Nomoporator and is part of the desired state
 				if _, inDesiredState := desiredStateJobs[*job.Name]; inDesiredState {
-
 				} else {
 					if opts.Delete {
 						fmt.Printf("Deleting job [%s]\n", *job.Name)

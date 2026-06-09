@@ -8,7 +8,7 @@ Nomoporator is a GitOps operator for Hashicorp Nomad.
 #### Environment variables
 It's also possible configure Nomoporator via environment variables by setting them like this:
 ```
-NOMAD_ADDR - Required to overide the default of http://127.0.0.1:4646.
+NOMAD_ADDR - Required to override the default of http://127.0.0.1:4646.
 NOMAD_TOKEN - Required with ACLs enabled.
 NOMAD_CACERT - Required with TLS enabled.
 NOMAD_CLIENT_CERT - Required with TLS enabled.
@@ -106,7 +106,7 @@ You can use SSH keys to connect to a private git repository.
 ssh-keygen -t ed25519 -C "nomoperator" -f "nomoperatordeploykey" -N ""
 ```
 
-If you would like to set password remove `-N ""` and enter the password. Make sure to set `--username sshusername ` and `--pasword sshpassword` when running nomoperator.
+If you would like to set password remove `-N ""` and enter the password. Make sure to set `--username sshusername ` and `--password sshpassword` when running nomoperator.
 
 * Configure the server git repository with public key
 
